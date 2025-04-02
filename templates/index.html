@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Note Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #c6e7cf;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #022505;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #e1d5d5;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 4px;
+        }
+    </style>
+    <script>
+        function validateForm() {
+            let clinicalNote = document.getElementById("clinicalNote").value.trim();
+            if (!clinicalNote) {
+                alert("Invalid input! Please enter a clinical note.");
+                return false;
+            }
+            if (clinicalNote.split(" ").length < 4) {
+                alert("Insufficient data! Please provide more details.");
+                return false;
+            }
+
+            // Validation based on required clinical details
+            let patterns = {
+                "age and gender": /\b\d{1,3}-?year-?old\s+(Male|Female|Other)\b/i,
+                "smoking and alcohol history": /\b(?:Never Smoked|Former Smoker|Current Smoker|Smoked|no Smoking|Smoking history).*?(?:None|Light|Moderate|Heavy|no alcohol consumption|alcohol consumption)\b/i,
+                "symptoms": /\b(?:Symptoms include|Symptoms included|presented with|Symptoms:|experienced).+\b/i,
+                "diagnosis": /\b(?:Diagnosed with|Following a diagnosis of) .+\b/i,
+                "comorbidities": /\b(?:Comorbidities include|Other diseases include) .+\b/i,
+                "allergies": /\b(?:Allergies: .+|is Allergic to .+|No known allergies)\b/i
+            };
+
+            let totalFields = Object.keys(patterns).length;
+            let presentFields = Object.values(patterns).filter(pattern => pattern.test(clinicalNote)).length;
+
+            if (presentFields < totalFields / 2) {
+                alert("⚠ Insufficient details! Please include at least half of the required clinical details:\n- Age and gender\n- Smoking and alcohol history\n- Symptoms\n- Diagnosis\n- Comorbidities\n- Allergies");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Decision Support System for Lung Cancer Treatment</h1>
+        <form action="/submit" method="POST" onsubmit="return validateForm()">
+            <label for="clinicalNote">Enter Clinical Note:</label>
+            <input type="text" id="clinicalNote" name="clinicalNote" placeholder="Type here..." required>
+            <button type="submit">Submit</button>
+        </form>
+
+        {% if clinicalnote %}
+        <div class="result">
+            <h3>Prediction Results:</h3>
+            <p><strong>Treatment:</strong> {{ clinicalnote['Treatment Prediction'] }}</p>
+            <p><strong>Drug:</strong> {{ clinicalnote['Drug Prediction'] }}</p>
+            <p><strong>Potential Side Effects:</strong> {{ clinicalnote['Side Effects'] | join(', ') }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
